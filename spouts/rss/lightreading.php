@@ -100,24 +100,5 @@ class lightreading extends feed {
      *
      * @return string content
      */
-    private function getTag($attr, $value, $xml, $tag = null, $end = null) {
-        if ($tag === null) {
-            $tag = '\w+';
-        } else {
-            $tag = preg_quote($tag);
-        }
-
-        if ($end === null) {
-            $end = '</\1>';
-        } else {
-            $end = preg_quote($end);
-        }
-
-        $attr = preg_quote($attr);
-        $value = preg_quote($value);
-        $tag_regex = '|<(' . $tag . ')[^>]*' . $attr . '\s*=\s*([\'"])' . $value . '\2[^>]*>(.*?)' . $end . '|ims';
-        preg_match_all($tag_regex, $xml, $matches, PREG_PATTERN_ORDER);
-
-        return $matches[3];
-    }
+    
 }

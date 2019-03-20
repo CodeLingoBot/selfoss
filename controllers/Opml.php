@@ -114,42 +114,7 @@ class Opml extends BaseController {
      *
      * @return string[] titles of feeds that could not be added to subscriptions
      */
-    private function processGroup(SimpleXMLElement $xml, array $tags = []) {
-        $errors = [];
-
-        $xml->registerXPathNamespace('selfoss', 'https://selfoss.aditu.de/');
-
-        // tags are the words of the outline parent
-        $title = (string) $xml->attributes(null)->title;
-        if ($title !== '' && $title !== '/') {
-            $tags[] = $title;
-            // for new tags, try to import tag color, otherwise use random color
-            if (!$this->tagsDao->hasTag($title)) {
-                $tagColor = (string) $xml->attributes('selfoss', true)->color;
-                if ($tagColor !== '') {
-                    $this->tagsDao->saveTagColor($title, $tagColor);
-                } else {
-                    $this->tagsDao->autocolorTag($title);
-                }
-            }
-        }
-
-        // parse outline items from the default and selfoss namespaces
-        foreach ($xml->xpath('outline|selfoss:outline') as $outline) {
-            if (count($outline->children()) + count($outline->children('selfoss', true)) > 0) {
-                // outline element has children, recurse into it
-                $ret = $this->processGroup($outline, $tags);
-                $errors = array_merge($errors, $ret);
-            } else {
-                $ret = $this->addSubscription($outline, $tags);
-                if ($ret !== true) {
-                    $errors[] = $ret;
-                }
-            }
-        }
-
-        return $errors;
-    }
+    
 
     /**
      * Add new feed subscription
@@ -159,73 +124,7 @@ class Opml extends BaseController {
      *
      * @return bool|string true on success or item title on error
      */
-    private function addSubscription(SimpleXMLElement $xml, array $tags) {
-        // OPML Required attributes: text, xmlUrl, type
-        // Optional attributes: title, htmlUrl, language, title, version
-        // Selfoss namespaced attributes: spout, params
-
-        $attrs = $xml->attributes(null);
-        $nsattrs = $xml->attributes('selfoss', true);
-
-        // description
-        $title = (string) $attrs->text;
-        if ($title === '') {
-            $title = (string) $attrs->title;
-        }
-
-        // RSS URL
-        $data['url'] = (string) $attrs->xmlUrl;
-
-        // set spout for new item
-        if ($nsattrs->spout || $nsattrs->params) {
-            if (!($nsattrs->spout && $nsattrs->params)) {
-                \F3::get('logger')->warning("OPML import: failed to import '$title'");
-                $missingAttr = $nsattrs->spout ? '"selfoss:params"' : '"selfoss:spout"';
-                \F3::get('logger')->debug("Missing attribute: $missingAttr");
-
-                return $title;
-            }
-            $spout = (string) $nsattrs->spout;
-            $data = json_decode(html_entity_decode((string) $nsattrs->params), true);
-        } elseif (in_array((string) $attrs->type, ['rss', 'atom'], true)) {
-            $spout = 'spouts\rss\feed';
-        } else {
-            \F3::get('logger')->warning("OPML import: failed to import '$title'");
-            \F3::get('logger')->debug("Invalid type '$attrs->type': only 'rss' and 'atom' are supported");
-
-            return $title;
-        }
-
-        // validate new item
-        $validation = @$this->sourcesDao->validate($title, $spout, $data);
-        if ($validation !== true) {
-            \F3::get('logger')->warning("OPML import: failed to import '$title'");
-            \F3::get('logger')->debug('Invalid source', $validation);
-
-            return $title;
-        }
-
-        // insert item or update tags for already imported item
-        $hash = md5($title . $spout . json_encode($data));
-        if (array_key_exists($hash, $this->imported)) {
-            $this->imported[$hash]['tags'] = array_unique(array_merge($this->imported[$hash]['tags'], $tags));
-            $tags = $this->imported[$hash]['tags'];
-            $this->sourcesDao->edit($this->imported[$hash]['id'], $title, $tags, '', $spout, $data);
-            \F3::get('logger')->debug("OPML import: updated tags for '$title'");
-        } elseif ($id = $this->sourcesDao->checkIfExists($title, $spout, $data)) {
-            $tags = array_unique(array_merge($this->sourcesDao->getTags($id), $tags));
-            $this->sourcesDao->edit($id, $title, $tags, '', $spout, $data);
-            $this->imported[$hash] = ['id' => $id, 'tags' => $tags];
-            \F3::get('logger')->debug("OPML import: updated tags for '$title'");
-        } else {
-            $id = $this->sourcesDao->add($title, $tags, '', $spout, $data);
-            $this->imported[$hash] = ['id' => $id, 'tags' => $tags];
-            \F3::get('logger')->debug("OPML import: successfully imported '$title'");
-        }
-
-        // success
-        return true;
-    }
+    
 
     /**
      * Generate an OPML outline element from a source
@@ -236,33 +135,7 @@ class Opml extends BaseController {
      *
      * @return void
      */
-    private function writeSource(array $source) {
-        // retrieve the feed url of the source
-        $params = json_decode(html_entity_decode($source['params']), true);
-        $feedUrl = $this->spoutLoader->get($source['spout'])->getXmlUrl($params);
-
-        // if the spout doesn't return a feed url, the source isn't an RSS feed
-        if ($feedUrl !== null) {
-            $this->writer->startElement('outline');
-        } else {
-            $this->writer->startElementNS('selfoss', 'outline', null);
-        }
-
-        $this->writer->writeAttribute('title', $source['title']);
-        $this->writer->writeAttribute('text', $source['title']);
-
-        if ($feedUrl !== null) {
-            $this->writer->writeAttribute('xmlUrl', $feedUrl);
-            $this->writer->writeAttribute('type', 'rss');
-        }
-
-        // write spout name and parameters in namespaced attributes
-        $this->writer->writeAttributeNS('selfoss', 'spout', null, $source['spout']);
-        $this->writer->writeAttributeNS('selfoss', 'params', null, html_entity_decode($source['params']));
-
-        $this->writer->endElement();  // outline
-        \F3::get('logger')->debug('done exporting source ' . $source['title']);
-    }
+    
 
     /**
      * Export user's subscriptions to OPML file

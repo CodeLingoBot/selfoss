@@ -113,11 +113,7 @@ class Tags extends Database {
      *
      * @return bool true if color is used by an tag
      */
-    private function isColorUsed($color) {
-        $res = \F3::get('db')->exec('SELECT COUNT(*) AS amount FROM ' . \F3::get('db_prefix') . 'tags WHERE color=:color', [':color' => $color]);
-
-        return $res[0]['amount'] > 0;
-    }
+    
 
     /**
      * check whether tag color is defined.

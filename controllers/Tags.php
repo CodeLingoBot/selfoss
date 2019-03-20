@@ -137,13 +137,5 @@ class Tags extends BaseController {
      *
      * @return array tag color array
      */
-    private function getTagsWithColors(array $tags) {
-        $assocTags = [];
-        foreach ($tags as $tag) {
-            $assocTags[$tag['tag']]['backColor'] = $tag['color'];
-            $assocTags[$tag['tag']]['foreColor'] = \helpers\Color::colorByBrightness($tag['color']);
-        }
-
-        return $assocTags;
-    }
+    
 }

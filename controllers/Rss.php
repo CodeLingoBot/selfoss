@@ -101,10 +101,5 @@ class Rss extends BaseController {
         $feedWriter->printFeed();
     }
 
-    private function sanitizeTitle($title) {
-        $title = strip_tags($title);
-        $title = html_entity_decode($title, ENT_HTML5, 'UTF-8');
-
-        return $title;
-    }
+    
 }

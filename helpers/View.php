@@ -183,25 +183,7 @@ class View {
      *
      * @return void
      */
-    private function genMinified($type) {
-        self::$staticmtime[$type] = self::maxmtime(\F3::get($type));
-
-        $target = \F3::get('BASEDIR') . '/public/' . self::$staticPrefix . '.' . $type;
-
-        // build if needed
-        if (!file_exists($target) || filemtime($target) < self::$staticmtime[$type]) {
-            $minified = '';
-            foreach (\F3::get($type) as $file) {
-                if ($type === self::STATIC_RESOURCE_JS) {
-                    $minifiedFile = $this->minifyJs(file_get_contents(\F3::get('BASEDIR') . '/' . $file));
-                } elseif ($type === self::STATIC_RESOURCE_CSS) {
-                    $minifiedFile = $this->minifyCss(file_get_contents(\F3::get('BASEDIR') . '/' . $file));
-                }
-                $minified = $minified . "\n" . $minifiedFile;
-            }
-            file_put_contents($target, $minified);
-        }
-    }
+    
 
     /**
      * minifies javascript if DEBUG mode is disabled
@@ -210,13 +192,7 @@ class View {
      *
      * @return string minified javascript
      */
-    private function minifyJs($content) {
-        if (\F3::get('DEBUG') != 0) {
-            return $content;
-        }
-
-        return \JShrink\Minifier::minify($content);
-    }
+    
 
     /**
      * minifies css if DEBUG mode is disabled
@@ -225,13 +201,7 @@ class View {
      *
      * @return string minified css
      */
-    private function minifyCss($content) {
-        if (\F3::get('DEBUG') != 0) {
-            return $content;
-        }
-
-        return \CssMin::minify($content);
-    }
+    
 
     /**
      * List files according to globbing pattern from selfoss base.

@@ -201,29 +201,5 @@ class Index extends BaseController {
      *
      * @return string html with items
      */
-    private function loadItems(array $options, array $tags) {
-        $itemDao = new \daos\Items();
-        $itemsHtml = '';
-
-        $firstPage = $options['offset'] == 0
-            && $options['fromId'] == ''
-            && $options['fromDatetime'] == '';
-        if ($options['source'] && $this->allowedToUpdate() && $firstPage) {
-            $itemsHtml = '<button type="button" id="refresh-source" class="refresh-source">' . \F3::get('lang_source_refresh') . '</button>';
-        }
-
-        $tagsController = new \controllers\Tags();
-        foreach ($itemDao->get($options) as $item) {
-            // parse tags and assign tag colors
-            $item['tags'] = $tagsController->tagsAddColors($item['tags'], $tags);
-
-            $this->view->item = $item;
-            $itemsHtml .= $this->view->render('templates/item.phtml');
-        }
-
-        return [
-            'html' => $itemsHtml,
-            'hasMore' => $itemDao->hasMore()
-        ];
-    }
+    
 }

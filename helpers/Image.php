@@ -196,30 +196,7 @@ class Image {
      *
      * @return ?string favicon url
      */
-    private function parseShortcutIcon($html) {
-        $dom = new \DomDocument();
-        if (@$dom->loadHTML($html) !== true) {
-            return null;
-        }
-
-        $xpath = new \DOMXPath($dom);
-        $elems = $xpath->query("//link[@rel='apple-touch-icon']");
-        if ($elems->length === 0) {
-            $elems = $xpath->query("//link[@rel='shortcut icon']");
-        }
-        if ($elems->length === 0) {
-            $elems = $xpath->query("//link[@rel='icon']");
-        }
-
-        if ($elems->length > 0) {
-            $icon = $elems->item(0);
-            if ($icon->hasAttribute('href')) {
-                return $icon->getAttribute('href');
-            }
-        }
-
-        return null;
-    }
+    
 
     /**
      * taken from: http://zytzagoo.net/blog/2008/01/23/extracting-images-from-html-using-regular-expressions/

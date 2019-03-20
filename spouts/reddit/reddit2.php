@@ -325,29 +325,7 @@ class reddit2 extends \spouts\spout {
      * @throws \RuntimeException if the response body is not in JSON format
      * @throws \Exception if the credentials are invalid
      */
-    private function login(array $params) {
-        $http = WebClient::getHttpClient();
-        $response = $http->post("https://ssl.reddit.com/api/login/{$params['username']}", [
-            GuzzleHttp\RequestOptions::FORM_PARAMS => [
-                'api_type' => 'json',
-                'user' => $params['username'],
-                'passwd' => $params['password']
-            ]
-        ]);
-        $data = json_decode((string) $response->getBody(), true);
-        if (count($data['json']['errors']) > 0) {
-            $errors = '';
-            foreach ($data['json']['errors'] as $error) {
-                $errors .= $error[1] . PHP_EOL;
-            }
-            throw new \Exception($errors);
-        } else {
-            $this->reddit_session = $data['json']['data']['cookie'];
-            if (function_exists('apc_store')) {
-                apc_store("{$params['username']}_selfoss_reddit_session", $this->reddit_session, 3600);
-            }
-        }
-    }
+    
 
     /**
      * Send a HTTP request to given URL, possibly with a cookie.
@@ -359,19 +337,5 @@ class reddit2 extends \spouts\spout {
      *
      * @return GuzzleHttp\Message\Response
      */
-    private function sendRequest($url, $method = 'GET') {
-        $http = WebClient::getHttpClient();
-
-        if (isset($this->reddit_session)) {
-            $request = new Request($method, $url, [
-                'cookies' => ['reddit_session' => $this->reddit_session]
-            ]);
-        } else {
-            $request = new Request($method, $url);
-        }
-
-        $response = $http->send($request);
-
-        return $response;
-    }
+    
 }

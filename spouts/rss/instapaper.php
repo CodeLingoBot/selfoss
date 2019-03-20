@@ -62,33 +62,7 @@ class instapaper extends feed {
      *
      * @return string content
      */
-    private function fetchFromInstapaper($url) {
-        if (function_exists('curl_init') && !ini_get('open_basedir')) {
-            $content = $this->file_get_contents_curl('https://www.instapaper.com/text?u=' . urlencode($url));
-        } else {
-            $content = @file_get_contents('https://www.instapaper.com/text?u=' . urlencode($url));
-        }
-        $dom = new \DOMDocument();
-        @$dom->loadHTML($content);
-        if (!$dom) {
-            return null;
-        }
-        $xpath = new \DOMXPath($dom);
-        $elements = $xpath->query("//div[@id='story']");
-        $content = $dom->saveXML($elements->item(0), LIBXML_NOEMPTYTAG);
+    
 
-        return $content;
-    }
-
-    private function file_get_contents_curl($url) {
-        $ch = curl_init();
-        curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 15);
-        curl_setopt($ch, CURLOPT_TIMEOUT, 15);
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
-        curl_setopt($ch, CURLOPT_URL, $url);
-        $data = @curl_exec($ch);
-        curl_close($ch);
-
-        return $data;
-    }
+    
 }
